@@ -1,271 +1,486 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>序列号生成器（1:1复刻VBA）</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: "微软雅黑", sans-serif;
-        }
-        body {
-            background-color: #f0f2f5;
-            padding: 40px 20px;
-        }
-        /* 登录面板 */
-        .login-box {
-            max-width: 420px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 40px 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        .login-box h3 {
-            margin-bottom: 25px;
-            color: #333;
-        }
-        .login-box input {
-            width: 100%;
-            height: 42px;
-            padding: 0 15px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 16px;
-            margin-bottom: 20px;
-        }
-        .login-box button {
-            width: 100%;
-            height: 42px;
-            background-color: #1677ff;
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        /* 主功能面板 */
-        .main-box {
-            max-width: 600px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-            display: none;
-        }
-        .main-box h3 {
-            text-align: center;
-            margin-bottom: 25px;
-            color: #333;
-        }
-        .btn-wrap {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-bottom: 30px;
-        }
-        .btn-wrap button {
-            height: 40px;
-            background-color: #00b42a;
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            font-size: 15px;
-            cursor: pointer;
-        }
-        .result-area {
-            border-top: 1px solid #eee;
-            padding-top: 25px;
-            line-height: 2.2;
-            font-size: 16px;
-        }
-        .code-line {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .copy-btn {
-            padding: 4px 12px;
-            background-color: #409eff;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        /* 复制成功提示文字 */
-        .tip-success {
-            color: #00b42a;
-            font-size: 14px;
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>日历控件 · 授权后台</title>
+<style>
+  :root{
+    --ink:#111827; --sub:#6b7280; --line:#e6e8ec; --blue:#2563eb; --blue-d:#1d4ed8;
+    --bg:#f5f7fa; --card:#fff; --warn:#b42318; --ok:#0f7b3f;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;color:var(--ink);font:14px/1.65 "Microsoft YaHei",system-ui,-apple-system,Arial;
+    background:linear-gradient(180deg,#f7f9fc 0%,#f1f4f8 100%);
+    min-height:100vh;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:26px 20px 70px}
+
+  /* 标题区 */
+  .head{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+  .head .bar{width:4px;height:30px;background:linear-gradient(180deg,var(--blue),#60a5fa);border-radius:2px}
+  .head h1{font-size:21px;font-weight:700;margin:0;letter-spacing:.3px}
+  .head .sub{color:var(--sub);font-size:12.5px;margin:0}
+  .badge{margin-left:auto;font-size:12px;padding:4px 12px;border-radius:999px;background:#f1f2f4;color:var(--sub);border:1px solid var(--line)}
+  .badge.on{background:#e9f7ef;color:var(--ok);border-color:#c9e9d6}
+
+  /* 卡片 */
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:18px 20px;margin-bottom:16px;
+    box-shadow:0 1px 3px rgba(16,24,40,.04),0 1px 2px rgba(16,24,40,.03);
+  }
+  .card-title{display:flex;align-items:center;gap:8px;font-size:14.5px;font-weight:700;margin-bottom:6px}
+  .card-title span.dot{width:7px;height:7px;border-radius:50%;background:var(--blue);display:inline-block}
+
+  label{display:block;font-size:12px;color:var(--sub);margin:10px 0 5px;letter-spacing:.2px}
+  input,select{
+    width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:8px;
+    font:inherit;background:#fff;color:var(--ink);transition:border-color .15s,box-shadow .15s;
+  }
+  input:focus,select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+  button{
+    font:inherit;padding:9px 16px;border:1px solid var(--line);background:#fff;color:var(--ink);
+    border-radius:8px;cursor:pointer;transition:all .15s;white-space:nowrap;
+  }
+  button:hover:not(:disabled){border-color:#c4ccd6;background:#fbfcfe}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  button.primary{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600}
+  button.primary:hover:not(:disabled){background:var(--blue-d);border-color:var(--blue-d)}
+  button.mini{padding:4px 10px;font-size:12px;border-radius:6px}
+  button.danger{color:var(--warn);border-color:#f0cdc9}
+  button.danger:hover:not(:disabled){background:#fdf3f2;border-color:#e6a9a3}
+
+  .row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+  .row > *{flex:1}
+  .row .fixed{flex:0 0 auto}
+  .types{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .types button{padding:8px 15px;border-radius:8px}
+  .types button:hover:not(:disabled){border-color:var(--blue);color:var(--blue)}
+
+  /* 搜索条 */
+  .searchbar{
+    display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+    margin:14px 0 12px;padding:12px;background:#fafbfd;border:1px solid var(--line);border-radius:10px;
+  }
+  .searchbar input[type=text]{flex:1 1 300px;min-width:220px}
+  .searchbar select{flex:0 0 132px;width:auto}
+  .searchbar button{flex:0 0 auto}
+
+  /* 表格 */
+  .scroll{overflow:auto;max-height:56vh;border:1px solid var(--line);border-radius:10px;background:#fff}
+  table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+  th,td{padding:10px 10px;text-align:left;white-space:nowrap;border-bottom:1px solid #f0f2f5}
+  th{
+    color:var(--sub);font-weight:600;font-size:12px;background:#fafbfd;
+    position:sticky;top:0;z-index:2;border-bottom:1px solid var(--line);
+  }
+  tbody tr:hover td{background:#f8fbff}
+  tbody tr:last-child td{border-bottom:none}
+  .code{font-family:Consolas,"Courier New",monospace;font-size:13.5px;letter-spacing:.6px;color:#0f172a}
+  .tag{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:600}
+  .tag::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.85}
+  .tag.u{background:#e9f7ef;color:var(--ok)}
+  .tag.n{background:#f1f2f4;color:var(--sub)}
+  .tag.r{background:#fdeceb;color:var(--warn)}
+  .tag.p{background:#eef2ff;color:#3844c4}
+  .tag.p::before{display:none}
+  td.ops{display:flex;gap:6px}
+  tr.hit td{background:#fffdf0}
+
+  .msg{margin-top:10px;font-size:12.5px;color:var(--sub);min-height:18px}
+  .msg.err{color:var(--warn)}
+  .msg.ok{color:var(--ok)}
+  .hint{font-size:12px;color:var(--sub);margin-top:8px;line-height:1.6}
+  .out{font-family:Consolas,monospace;font-size:18px;letter-spacing:1px;color:#0a7d4f;word-break:break-all}
+  .outbox{margin-top:12px;padding:14px;border:1px dashed #cdd5df;border-radius:10px;display:none;background:#fbfdfc}
+
+  /* 分页 */
+  .pager{
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    margin-top:14px;padding-top:14px;border-top:1px solid var(--line);
+  }
+  .pager .lgroup,.pager .rgroup{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub)}
+  .pager .mgroup{display:flex;align-items:center;gap:6px;margin:0 auto}
+  .pager select{width:auto;padding:6px 10px;border-radius:7px;font-size:12.5px}
+  .pager button{padding:6px 12px;font-size:12.5px;border-radius:7px}
+  .pager .pageinfo{font-size:12.5px;color:var(--ink);padding:0 6px;white-space:nowrap;font-weight:600}
+  .pager input.jump{width:56px;padding:5px 8px;text-align:center;border-radius:7px;font-size:12.5px}
+</style>
 </head>
 <body>
-    <!-- 登录界面 -->
-    <div class="login-box" id="loginPanel">
-        <h3>管理员登录</h3>
-        <input type="password" id="pwdInput" placeholder="请输入管理员密码">
-        <button onclick="verifyPwd()">确认登录</button>
+<div class="wrap">
+  <div class="head">
+    <div class="bar"></div>
+    <div>
+      <h1>日历控件 · 授权后台</h1>
+      <div class="sub">一个激活码只能被核销一次 · 不采集客户硬件信息</div>
+    </div>
+    <div class="badge" id="badge">未连接</div>
+  </div>
+
+  <!-- 连接设置 -->
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>连接服务器</div>
+    <div class="row">
+      <div>
+        <label>Edge Function 地址</label>
+        <input id="url" placeholder="https://xxxx.supabase.co/functions/v1/license">
+      </div>
+      <div>
+        <label>后台口令</label>
+        <input id="pwd" type="password" placeholder="请输入后台口令">
+      </div>
+      <div class="fixed"><button class="primary" id="btnLogin">连接</button></div>
+    </div>
+    <div class="hint">地址在 Supabase 控制台 Edge Functions 里能看到，形如 https://<i>项目ID</i>.supabase.co/functions/v1/license</div>
+    <div class="msg" id="msgLogin"></div>
+  </div>
+
+  <!-- 生成 -->
+  <div class="card" id="panelGen" hidden>
+    <div class="card-title"><span class="dot"></span>生成激活码</div>
+    <div class="types">
+      <button data-type="1">2 分钟</button>
+      <button data-type="2">10 分钟</button>
+      <button data-type="3">1 个月</button>
+      <button data-type="4">2 个月</button>
+      <button data-type="5">3 个月</button>
+      <button data-type="6">6 个月</button>
+      <button data-type="7">1 年</button>
+      <button data-type="8">永久</button>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <div class="fixed" style="flex:0 0 150px">
+        <label>生成数量</label>
+        <input id="count" type="number" value="1" min="1" max="50">
+      </div>
+      <div class="fixed"><button id="btnCopyLast">复制上次生成的码</button></div>
+      <div class="fixed"><button id="btnRefresh">刷新列表</button></div>
+    </div>
+    <div class="outbox" id="outbox">
+      <div style="font-size:12px;color:#6b7280;margin-bottom:6px">生成结果（点击可全选复制）</div>
+      <div class="out" id="outCodes"></div>
+    </div>
+    <div class="msg" id="msgGen"></div>
+  </div>
+
+  <!-- 列表 -->
+  <div class="card" id="panelList" hidden>
+    <div class="card-title" style="margin-bottom:2px"><span class="dot"></span>激活码列表<span class="hint" id="stat" style="margin:0 0 0 auto;font-weight:400"></span></div>
+
+    <!-- 搜索条 -->
+    <div class="searchbar">
+      <input id="q" type="text" placeholder="输入激活码或安装ID，可只输前几位，边打边筛">
+      <select id="fstatus">
+        <option value="">全部状态</option>
+        <option value="unused">未使用</option>
+        <option value="used">已使用</option>
+        <option value="revoked">已停用</option>
+      </select>
+      <button id="btnClearq" class="danger">清除搜索</button>
     </div>
 
-    <!-- 主功能界面 -->
-    <div class="main-box" id="mainPanel">
-        <h3>序列号生成工具（15位 | 总和固定150）</h3>
-        <div class="btn-wrap">
-            <button onclick="createCode('1')">2分钟有效</button>
-            <button onclick="createCode('2')">10分钟有效</button>
-            <button onclick="createCode('3')">1个月有效</button>
-            <button onclick="createCode('4')">2个月有效</button>
-            <button onclick="createCode('5')">3个月有效</button>
-            <button onclick="createCode('6')">6个月有效</button>
-            <button onclick="createCode('7')">1年有效</button>
-            <button onclick="createCode('8')">永久有效</button>
-        </div>
-        <div class="result-area" id="resultPanel"></div>
+    <div class="scroll">
+      <table>
+        <thead><tr>
+          <th>激活码</th><th>时长</th><th>状态</th><th>激活时间</th><th>到期</th><th>安装ID</th><th>操作</th>
+        </tr></thead>
+        <tbody id="tbody"><tr><td colspan="7" style="color:#9aa4af;text-align:center;padding:26px">还没有数据</td></tr></tbody>
+      </table>
     </div>
 
-    <script>
-        // 和VBA完全一致的常量定义
-        const ADMIN_PWD = "080929";
-        const ALL_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    <!-- 分页条 -->
+    <div class="pager" id="pager" hidden>
+      <div class="lgroup">
+        <span>每页</span>
+        <select id="pageSize">
+          <option value="10">10</option>
+          <option value="20" selected>20</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+          <option value="500">全部</option>
+        </select>
+        <span>条</span>
+      </div>
+      <div class="mgroup">
+        <button id="pFirst">首页</button>
+        <button id="pPrev">上一页</button>
+        <span class="pageinfo" id="pageInfo">第 1 / 1 页</span>
+        <button id="pNext">下一页</button>
+        <button id="pLast">末页</button>
+        <span class="lgroup" style="margin-left:10px">跳到
+          <input class="jump" id="pJump" type="number" min="1" value="1"> 页
+        </span>
+      </div>
+      <div class="rgroup"><span id="rangeInfo"></span></div>
+    </div>
 
-        function verifyPwd() {
-            let inputPwd = document.getElementById("pwdInput").value;
-            if (inputPwd === ADMIN_PWD) {
-                document.getElementById("loginPanel").style.display = "none";
-                document.getElementById("mainPanel").style.display = "block";
-            } else {
-                alert("密码错误，请重新输入！");
-                document.getElementById("pwdInput").value = "";
-            }
-        }
+    <div class="msg" id="msgList"></div>
+  </div>
+</div>
 
-        // 随机字符
-        function GetRandChar() {
-            let idx = Math.floor(Math.random() * ALL_CHARS.length);
-            return ALL_CHARS[idx];
-        }
+<script>
+const $ = (id) => document.getElementById(id);
+let cfg = { url: '', pwd: '' };
+let lastCodes = [];
+let allRows = [];      // 服务器返回的全部行
+let page = 1;          // 当前页
+let pageSize = 20;     // 每页条数
 
-        // 字符转数值
-        function Char2Num(ch) {
-            ch = ch.toUpperCase();
-            if (ch >= "0" && ch <= "9") {
-                return parseInt(ch);
-            } else if (ch >= "A" && ch <= "Z") {
-                return ch.charCodeAt(0) - "A".charCodeAt(0) + 1;
-            } else {
-                return 0;
-            }
-        }
+function setMsg(id, text, isErr, isOk) {
+  const el = $(id);
+  el.textContent = text || '';
+  el.className = 'msg' + (isErr ? ' err' : (isOk ? ' ok' : ''));
+}
 
-        // 数值转字符
-        function Num2Char(n) {
-            if (n < 0) n = 0;
-            if (n > 26) n = 26;
-            if (n <= 9) {
-                return String(n);
-            } else {
-                return String.fromCharCode("A".charCodeAt(0) + n - 10);
-            }
-        }
+async function api(op, extra) {
+  if (!cfg.url) throw new Error('请先填写 Edge Function 地址');
+  const body = Object.assign({ pwd: cfg.pwd, op }, extra || {});
+  let res;
+  try {
+    res = await fetch(cfg.url.replace(/\/+$/, '') + '/admin', {
+      method: 'POST',
+      headers: { 'content-type': 'text/plain;charset=UTF-8' },  // 简单请求，不触发跨域预检
+      body: JSON.stringify(body),
+    });
+  } catch (e) {
+    throw new Error('连不上服务器：' + e.message + '（检查地址、网络、函数是否已部署）');
+  }
+  if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + (await res.text()).slice(0, 80));
+  const data = await res.json();
+  if (!data.ok) throw new Error(data.error || '操作失败');
+  return data;
+}
 
-        // 计算总和
-        function GetSum(code) {
-            let total = 0;
-            for (let i = 0; i < code.length; i++) {
-                total += Char2Num(code[i]);
-            }
-            return total;
-        }
+// 连接
+$('btnLogin').onclick = async () => {
+  cfg.url = $('url').value.trim();
+  cfg.pwd = $('pwd').value.trim();
+  setMsg('msgLogin', '正在连接…');
+  try {
+    await api('login');
+    localStorage.setItem('lic_url', cfg.url);
+    sessionStorage.setItem('lic_pwd', cfg.pwd);
+    setMsg('msgLogin', '连接成功', false, true);
+    $('badge').textContent = '已连接';
+    $('badge').className = 'badge on';
+    $('panelGen').hidden = false;
+    $('panelList').hidden = false;
+    refresh();
+  } catch (e) {
+    setMsg('msgLogin', e.message, true);
+    $('badge').textContent = '未连接';
+    $('badge').className = 'badge';
+  }
+};
 
-        // 核心生成函数 1:1复刻VBA
-        function GenerateCode(typeNum) {
-            let code = "XXXXXXXXXXXXXXX";
-            code = code.substring(0, 5) + "0" + code.substring(6);
-            code = code.substring(0, 10) + typeNum + code.substring(11);
+// 生成
+document.querySelectorAll('.types button').forEach((btn) => {
+  btn.onclick = async () => {
+    const type = btn.dataset.type;
+    const count = Math.max(1, Math.min(50, Number($('count').value) || 1));
+    setMsg('msgGen', '生成中…');
+    try {
+      const r = await api('gen', { type: Number(type), count });
+      lastCodes = r.list || [];
+      $('outbox').style.display = 'block';
+      $('outCodes').textContent = lastCodes.join('   ');
+      setMsg('msgGen', `已生成 ${lastCodes.length} 个（${r.period}）`, false, true);
+      refresh();
+    } catch (e) {
+      setMsg('msgGen', e.message, true);
+    }
+  };
+});
 
-            let pos6Val = Char2Num("0");
-            let pos11Val = Char2Num(typeNum);
-            let remainingSum = 150 - pos6Val - pos11Val;
+$('btnCopyLast').onclick = async () => {
+  if (!lastCodes.length) return setMsg('msgGen', '还没有生成过');
+  try {
+    await navigator.clipboard.writeText(lastCodes.join('\n'));
+    setMsg('msgGen', '已复制到剪贴板', false, true);
+  } catch (e) {
+    setMsg('msgGen', '复制失败，请手动选中上方文本', true);
+  }
+};
 
-            for (let i = 1; i <= 15; i++) {
-                if (i !== 6 && i !== 11) {
-                    let ch, val;
-                    do {
-                        ch = GetRandChar();
-                        val = Char2Num(ch);
-                    } while (!(remainingSum - val >= 0 && remainingSum - val <= (15 - i) * 26));
+$('btnRefresh').onclick = () => refresh();
 
-                    let arr = code.split('');
-                    arr[i - 1] = ch;
-                    code = arr.join('');
-                    remainingSum = remainingSum - val;
-                }
-            }
+$('outCodes').onclick = () => {
+  const r = document.createRange();
+  r.selectNodeContents($('outCodes'));
+  const s = getSelection();
+  s.removeAllRanges();
+  s.addRange(r);
+};
 
-            let totalSum = GetSum(code);
-            if (totalSum !== 150) {
-                let diff = 150 - totalSum;
-                let arr = code.split('');
-                arr[14] = Num2Char(Char2Num(arr[14]) + diff);
-                code = arr.join('');
-            }
-            return code;
-        }
+// 列表
+async function refresh() {
+  try {
+    const r = await api('list', { limit: 500 });
+    allRows = r.rows || [];
+    render();
+    setMsg('msgList', '');
+  } catch (e) {
+    setMsg('msgList', e.message, true);
+  }
+}
 
-        // 主生成入口
-        function createCode(type) {
-            let typeText = {
-                "1": "2分钟有效",
-                "2": "10分钟有效",
-                "3": "1个月有效",
-                "4": "2个月有效",
-                "5": "3个月有效",
-                "6": "6个月有效",
-                "7": "1年有效",
-                "8": "永久有效"
-            }[type];
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
 
-            let code = GenerateCode(type);
-            let len = code.length;
-            let sum = GetSum(code);
-            let createTime = new Date().toLocaleString();
+// 搜索：激活码 / 安装ID 子串匹配，不区分大小写
+function filterRows() {
+  const q = ($('q').value || '').trim().toUpperCase();
+  const st = $('fstatus').value;
+  return allRows.filter((r) => {
+    if (q) {
+      const hay = ((r.code || '') + ' ' + (r.install_id || '')).toUpperCase();
+      if (hay.indexOf(q) < 0) return false;
+    }
+    if (st === 'unused') return !r.used && !r.revoked;
+    if (st === 'used') return r.used && !r.revoked;
+    if (st === 'revoked') return r.revoked;
+    return true;
+  });
+}
 
-            let resultHtml = `
-                <div class="code-line">
-                    <span><strong>生成序列号：</strong>${code}</span>
-                    <button class="copy-btn" onclick="copyText(this, '${code}')">复制</button>
-                    <span class="tip-success" id="copyTip"></span>
-                </div>
-                <div><strong>生成时间：</strong>${createTime}</div>
-                <div><strong>有效时限：</strong>${typeText}</div>
-                <div><strong>字符总长：</strong>${len} &nbsp;&nbsp; <strong>数值总和：</strong>${sum}</div>
-            `;
-            document.getElementById("resultPanel").innerHTML = resultHtml;
-        }
+function render() {
+  const tb = $('tbody');
+  const rows = filterRows();
+  const total = allRows.length;
+  const usedCount = allRows.filter((r) => r.used && !r.revoked).length;
 
-        // 复制功能 + 按钮旁提示，无弹窗
-        function copyText(btn, text) {
-            const tipDom = document.getElementById("copyTip");
-            navigator.clipboard.writeText(text).then(() => {
-                tipDom.innerText = "√ 复制成功";
-                // 2秒后自动清空提示
-                setTimeout(() => {
-                    tipDom.innerText = "";
-                }, 2000);
-            }).catch(() => {
-                tipDom.innerText = "复制失败";
-                setTimeout(() => {
-                    tipDom.innerText = "";
-                }, 2000);
-            });
-        }
-    </script>
+  if (!total) {
+    tb.innerHTML = '<tr><td colspan="7" style="color:#9aa4af;text-align:center;padding:26px">还没有数据</td></tr>';
+    $('stat').textContent = '';
+    $('pager').hidden = true;
+    return;
+  }
+
+  $('stat').textContent = `共 ${total} 条，已用 ${usedCount} 条${rows.length !== total ? `，匹配 ${rows.length} 条` : ''}`;
+
+  // 无匹配
+  if (!rows.length) {
+    tb.innerHTML = '<tr><td colspan="7" style="color:#9aa4af;text-align:center;padding:26px">没有匹配的激活码，换个关键词或清除搜索</td></tr>';
+    $('pager').hidden = true;
+    return;
+  }
+
+  $('pager').hidden = false;
+
+  // 分页
+  const pages = Math.max(1, Math.ceil(rows.length / pageSize));
+  if (page > pages) page = pages;
+  if (page < 1) page = 1;
+  const start = (page - 1) * pageSize;
+  const view = rows.slice(start, start + pageSize);
+
+  $('pageInfo').textContent = `第 ${page} / ${pages} 页`;
+  $('rangeInfo').textContent = `第 ${start + 1}-${start + view.length} 条，共 ${rows.length} 条`;
+  $('pFirst').disabled = page <= 1;
+  $('pPrev').disabled = page <= 1;
+  $('pNext').disabled = page >= pages;
+  $('pLast').disabled = page >= pages;
+  $('pJump').max = pages;
+  $('pJump').value = page;
+
+  tb.innerHTML = view.map((r) => {
+    const st = r.revoked
+      ? '<span class="tag r">已停用</span>'
+      : (r.used ? '<span class="tag u">已用</span>' : '<span class="tag n">未用</span>');
+    const perm = r.permanent ? ' <span class="tag p">永久</span>' : '';
+    const iid = r.install_id ? r.install_id.slice(0, 8) + '…' : '';
+    return `<tr${rows.length === 1 ? ' class="hit"' : ''}>
+      <td class="code">${esc(r.code)}</td>
+      <td>${esc(r.period)}${perm}${r.legacy ? ' <span class="tag n">老码</span>' : ''}</td>
+      <td>${st}</td>
+      <td>${esc(r.used_at || '—')}</td>
+      <td>${esc(r.expire_at || '—')}</td>
+      <td title="${esc(r.install_id)}">${esc(iid)}</td>
+      <td class="ops">
+        <button class="mini" data-act="copy" data-code="${esc(r.code)}">复制</button>
+        <button class="mini" data-act="revoke" data-code="${esc(r.code)}" data-on="${r.revoked ? '0' : '1'}">${r.revoked ? '启用' : '停用'}</button>
+        <button class="mini danger" data-act="reset" data-code="${esc(r.code)}">清除绑定</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // 搜索精确命中一条且已使用时，给出下一步提示
+  if (rows.length === 1 && rows[0].used) {
+    setMsg('msgList', `已定位到 ${rows[0].code}，绑定的安装ID ${rows[0].install_id || '—'}。要给客户换电脑，点右侧『清除绑定』。`);
+  }
+}
+
+function goPage(n) {
+  page = n;
+  render();
+}
+
+$('pFirst').onclick = () => goPage(1);
+$('pPrev').onclick = () => goPage(page - 1);
+$('pNext').onclick = () => goPage(page + 1);
+$('pLast').onclick = () => { const rows = filterRows(); goPage(Math.max(1, Math.ceil(rows.length / pageSize))); };
+
+$('pageSize').onchange = (e) => {
+  pageSize = Number(e.target.value) || 20;
+  page = 1;
+  render();
+};
+
+$('pJump').onchange = (e) => {
+  const n = Number(e.target.value);
+  if (n >= 1) goPage(n);
+};
+
+// 搜索与筛选：实时过滤，条件一变就回到第 1 页
+$('q').addEventListener('input', () => { setMsg('msgList', ''); page = 1; render(); });
+$('fstatus').addEventListener('change', () => { setMsg('msgList', ''); page = 1; render(); });
+$('btnClearq').onclick = () => {
+  $('q').value = '';
+  $('fstatus').value = '';
+  setMsg('msgList', '');
+  page = 1;
+  render();
+  $('q').focus();
+};
+
+$('tbody').addEventListener('click', async (ev) => {
+  const btn = ev.target.closest('button');
+  if (!btn) return;
+  const code = btn.dataset.code;
+  const act = btn.dataset.act;
+
+  if (act === 'copy') {
+    try { await navigator.clipboard.writeText(code); setMsg('msgList', '已复制 ' + code, false, true); } catch (e) { setMsg('msgList', '复制失败', true); }
+    return;
+  }
+
+  if (act === 'revoke') {
+    const on = btn.dataset.on === '1';
+    if (!confirm(on ? `停用 ${code}？客户下次联网即失效` : `恢复 ${code}？`)) return;
+    try { await api('revoke', { code, disabled: on }); setMsg('msgList', on ? '已停用' : '已启用', false, true); refresh(); }
+    catch (e) { setMsg('msgList', e.message, true); }
+    return;
+  }
+
+  if (act === 'reset') {
+    if (!confirm(`清除 ${code} 的绑定？\n清除后客户可在新电脑上用原码激活，剩余时长不损失`)) return;
+    try {
+      const r = await api('reset', { code });
+      const left = typeof r.carry === 'number' ? `（保留 ${Math.round(r.carry / 86400)} 天）` : '';
+      setMsg('msgList', '已清除绑定' + left, false, true);
+      refresh();
+    } catch (e) { setMsg('msgList', e.message, true); }
+  }
+});
+
+// 初始化
+$('url').value = localStorage.getItem('lic_url') || '';
+$('pwd').value = sessionStorage.getItem('lic_pwd') || '';
+if ($('url').value && $('pwd').value) $('btnLogin').click();
+</script>
 </body>
 </html>
